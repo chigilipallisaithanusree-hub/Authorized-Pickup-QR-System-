@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Shield, Lock, Mail } from 'lucide-react';
 import Alert from '../components/Alert';
@@ -13,7 +14,17 @@ const Login = () => {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const { login, register, resetPassword } = useAuth();
+  const navigate = useNavigate();
+  const { user, login, register, resetPassword } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      const userRole = user.role.toLowerCase();
+      if (userRole === 'parent') navigate('/parent/dashboard');
+      else if (userRole === 'teacher') navigate('/teacher/dashboard');
+      else if (userRole === 'admin') navigate('/admin/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

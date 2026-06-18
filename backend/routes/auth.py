@@ -179,4 +179,18 @@ def mock_register():
     user.is_active = True
     db.session.commit()
     
-    return jsonify({'message': 'Mock account created and activated successfully.', 'user': user.to_dict()}), 200
+    # Generate local JWT (accepted by middleware fallback)
+    token_expiry = datetime.utcnow() + timedelta(hours=8)
+    token_payload = {
+        'sub': str(user.id),
+        'role': user.role,
+        'iat': datetime.utcnow(),
+        'exp': token_expiry
+    }
+    token = jwt.encode(token_payload, current_app.config['SECRET_KEY'], algorithm='HS256')
+    
+    return jsonify({
+        'message': 'Mock account created and activated successfully.',
+        'token': token,
+        'user': user.to_dict()
+    }), 200
