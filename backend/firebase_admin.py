@@ -5,23 +5,19 @@ from flask import request, jsonify, current_app
 from functools import wraps
 import jwt
 
-logger = logging.getLogger(__name__)
-
-# Define the local directory to remove from path
+# 1. Prevent self-shadowing by loading the real third-party firebase-admin package
 local_dir = os.path.dirname(os.path.abspath(__file__))
-
-# 1. Temporarily remove 'firebase_admin' from sys.modules and local_dir from sys.path
-saved_module = sys.modules.pop('firebase_admin', None)
 saved_path = sys.path.copy()
-
 try:
     while local_dir in sys.path:
         sys.path.remove(local_dir)
-    # Import the real third-party firebase_admin library
-    import firebase_admin as real_fb
+    sys.modules.pop('firebase_admin', None)
+    import firebase_admin
     from firebase_admin import credentials, auth
 finally:
     sys.path = saved_path
+
+logger = logging.getLogger(__name__)
 
 # Initialize the Firebase Admin SDK using path from environment variable
 config_path = os.environ.get("FIREBASE_CONFIG_PATH", "firebase-service-account.json")
@@ -37,16 +33,16 @@ try:
     if os.path.exists(config_path):
         logger.info(f"[Firebase Admin] Initializing SDK from config file: {config_path}")
         cred = credentials.Certificate(config_path)
-        firebase_app = real_fb.initialize_app(cred)
+        firebase_app = firebase_admin.initialize_app(cred)
     else:
         # Check if already initialized by another module
-        if not real_fb._apps:
+        if not firebase_admin._apps:
             logger.info("[Firebase Admin] Config file not found. Running in offline/development fallback mode.")
             firebase_app = None
         else:
-            firebase_app = real_fb.get_app()
+            firebase_app = firebase_admin.get_app()
 except ValueError:
-    firebase_app = real_fb.get_app()
+    firebase_app = firebase_admin.get_app()
 except Exception as e:
     logger.error(f"[Firebase Admin] Failed to initialize: {e}")
     firebase_app = None
@@ -136,9 +132,6 @@ def require_role(allowed_roles):
     return decorator
 
 # Attach our custom decorators and initialize state to the real firebase_admin module
-real_fb.require_firebase_auth = require_firebase_auth
-real_fb.require_role = require_role
-real_fb.firebase_app = firebase_app
-
-# Override the sys.modules entry for 'firebase_admin' so all future imports get the modified real package
-sys.modules['firebase_admin'] = real_fb
+firebase_admin.require_firebase_auth = require_firebase_auth
+firebase_admin.require_role = require_role
+firebase_admin.firebase_app = firebase_app
