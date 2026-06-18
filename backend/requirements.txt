@@ -1,3 +1,4 @@
+python-dotenv
 firebase-admin>=7.4.0
 PyJWT>=2.10.1
 gunicorn
