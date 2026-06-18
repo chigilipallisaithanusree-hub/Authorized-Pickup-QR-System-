@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from models import db, User
-from middleware import token_required, role_required
+from firebase_config import require_firebase_auth, require_role
 import logging
 
 logger = logging.getLogger(__name__)
@@ -8,8 +8,8 @@ logger = logging.getLogger(__name__)
 users_bp = Blueprint('users', __name__)
 
 @users_bp.route('', methods=['GET'])
-@token_required
-@role_required(['Admin'])
+@require_firebase_auth
+@require_role(['Admin'])
 def get_users(current_user):
     search_query = request.args.get('search', '').strip()
     role_filter = request.args.get('role', '').strip()
@@ -31,8 +31,8 @@ def get_users(current_user):
     return jsonify({'users': [u.to_dict() for u in users]}), 200
 
 @users_bp.route('/<int:user_id>', methods=['GET'])
-@token_required
-@role_required(['Admin'])
+@require_firebase_auth
+@require_role(['Admin'])
 def get_user_by_id(current_user, user_id):
     user = User.query.get(user_id)
     if not user:
@@ -40,8 +40,8 @@ def get_user_by_id(current_user, user_id):
     return jsonify({'user': user.to_dict()}), 200
 
 @users_bp.route('', methods=['POST'])
-@token_required
-@role_required(['Admin'])
+@require_firebase_auth
+@require_role(['Admin'])
 def create_user(current_user):
     data = request.get_json()
     if not data or not data.get('email') or not data.get('role') or not data.get('fullName'):
@@ -74,8 +74,8 @@ def create_user(current_user):
     return jsonify({'message': 'User created successfully', 'userId': user.id}), 201
 
 @users_bp.route('/<int:user_id>', methods=['PUT'])
-@token_required
-@role_required(['Admin'])
+@require_firebase_auth
+@require_role(['Admin'])
 def update_user(current_user, user_id):
     user = User.query.get(user_id)
     if not user:
@@ -124,8 +124,8 @@ def update_user(current_user, user_id):
     return jsonify({'message': 'User profile updated successfully'}), 200
 
 @users_bp.route('/<int:user_id>', methods=['DELETE'])
-@token_required
-@role_required(['Admin'])
+@require_firebase_auth
+@require_role(['Admin'])
 def delete_user(current_user, user_id):
     if current_user.id == user_id:
         return jsonify({'error': 'You cannot delete your own account.', 'code': 'ERR_SELF_DELETE'}), 400

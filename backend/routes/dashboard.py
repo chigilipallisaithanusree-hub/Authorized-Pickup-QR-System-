@@ -1,12 +1,12 @@
 from flask import Blueprint, jsonify
 from datetime import datetime, timedelta
 from models import db, Student, Guardian, QrToken, PickupLog
-from middleware import token_required
+from firebase_config import require_firebase_auth
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
 @dashboard_bp.route('/metrics', methods=['GET'])
-@token_required
+@require_firebase_auth
 def get_metrics(current_user):
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     

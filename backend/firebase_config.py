@@ -7,33 +7,19 @@ from flask import request, jsonify, current_app
 from functools import wraps
 import jwt
 
-# Point to Render's internal secret file directory
 firebase_config_path = os.environ.get("FIREBASE_CONFIG_PATH", "/etc/secrets/firebase-service-account.json")
 
-# Add fallback directory paths for local development
-local_dir = os.path.dirname(os.path.abspath(__file__))
-if not os.path.exists(firebase_config_path):
-    for path in ['serviceAccountKey.json', 'firebase-service-account.json']:
-        alt_path = os.path.join(local_dir, path)
-        if os.path.exists(alt_path):
-            firebase_config_path = alt_path
-            break
-
-firebase_app = None
 if not firebase_admin._apps:
     try:
         if os.path.exists(firebase_config_path):
             cred = credentials.Certificate(firebase_config_path)
-            firebase_app = firebase_admin.initialize_app(cred)
-            print("Firebase Admin SDK successfully initialized using Service Account JSON.", file=sys.stderr)
+            firebase_admin.initialize_app(cred)
         else:
-            firebase_app = firebase_admin.initialize_app()
-            print("Firebase Admin SDK initialized using default fallback settings.", file=sys.stderr)
+            firebase_admin.initialize_app()
     except Exception as e:
-        print(f"CRITICAL: Firebase Admin SDK initialization failed: {e}", file=sys.stderr)
-        firebase_app = None
-else:
-    firebase_app = firebase_admin.get_app()
+        print(f"Firebase Init Error: {e}", file=sys.stderr)
+
+firebase_app = firebase_admin.get_app() if firebase_admin._apps else None
 
 def require_firebase_auth(f):
     @wraps(f)

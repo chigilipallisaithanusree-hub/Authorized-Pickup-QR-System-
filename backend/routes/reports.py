@@ -3,14 +3,14 @@ from datetime import datetime
 import csv
 import io
 from models import PickupLog
-from middleware import token_required, role_required
+from firebase_config import require_firebase_auth, require_role
 from services.pdf_generator import PDFGenerator
 
 reports_bp = Blueprint('reports', __name__)
 
 @reports_bp.route('/export', methods=['GET'])
-@token_required
-@role_required(['Admin'])
+@require_firebase_auth
+@require_role(['Admin'])
 def export_reports(current_user):
     start_date_str = request.args.get('startDate', '').strip()
     end_date_str = request.args.get('endDate', '').strip()

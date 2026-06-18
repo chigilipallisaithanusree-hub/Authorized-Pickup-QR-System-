@@ -4,15 +4,15 @@ import qrcode
 import io
 import base64
 from models import db, Student, Guardian, QrToken
-from middleware import token_required, role_required
+from firebase_config import require_firebase_auth, require_role
 from services.rule_engine import RuleEngine
 from services.notifier import Notifier
 
 qr_bp = Blueprint('qr', __name__)
 
 @qr_bp.route('/generate', methods=['POST'])
-@token_required
-@role_required(['Parent', 'Admin'])
+@require_firebase_auth
+@require_role(['Parent', 'Admin'])
 def generate_qr(current_user):
     data = request.get_json()
     if not data or not data.get('studentId') or not data.get('guardianId'):

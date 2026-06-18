@@ -1,11 +1,11 @@
 from flask import Blueprint, request, jsonify
 from models import db, Student, User
-from middleware import token_required, role_required
+from firebase_config import require_firebase_auth, require_role
 
 students_bp = Blueprint('students', __name__)
 
 @students_bp.route('', methods=['GET'])
-@token_required
+@require_firebase_auth
 def get_students(current_user):
     search_query = request.args.get('search', '').strip()
     class_filter = request.args.get('class', '').strip()
@@ -31,7 +31,7 @@ def get_students(current_user):
     return jsonify({'students': [s.to_dict() for s in students]}), 200
 
 @students_bp.route('/<int:student_id>', methods=['GET'])
-@token_required
+@require_firebase_auth
 def get_student_by_id(current_user, student_id):
     student = Student.query.filter_by(id=student_id, is_deleted=False).first()
     if not student:
@@ -43,8 +43,8 @@ def get_student_by_id(current_user, student_id):
     return jsonify({'student': student.to_dict()}), 200
 
 @students_bp.route('', methods=['POST'])
-@token_required
-@role_required(['Admin'])
+@require_firebase_auth
+@require_role(['Admin'])
 def add_student(current_user):
     data = request.get_json()
     if not data or not data.get('firstName') or not data.get('lastName') or not data.get('gradeClass') or not data.get('parentEmail'):
@@ -94,8 +94,8 @@ def add_student(current_user):
     return jsonify({'message': 'Student registered successfully', 'studentId': student.id}), 201
 
 @students_bp.route('/<int:student_id>', methods=['PUT'])
-@token_required
-@role_required(['Admin'])
+@require_firebase_auth
+@require_role(['Admin'])
 def update_student(current_user, student_id):
     student = Student.query.filter_by(id=student_id, is_deleted=False).first()
     if not student:
@@ -116,8 +116,8 @@ def update_student(current_user, student_id):
     return jsonify({'message': 'Student profile updated successfully'}), 200
 
 @students_bp.route('/<int:student_id>', methods=['DELETE'])
-@token_required
-@role_required(['Admin'])
+@require_firebase_auth
+@require_role(['Admin'])
 def delete_student(current_user, student_id):
     student = Student.query.filter_by(id=student_id, is_deleted=False).first()
     if not student:

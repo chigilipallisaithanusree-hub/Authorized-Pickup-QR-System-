@@ -1,11 +1,11 @@
 from flask import Blueprint, request, jsonify
 from models import db, Guardian, Student, student_guardians
-from middleware import token_required, role_required
+from firebase_config import require_firebase_auth, require_role
 
 guardians_bp = Blueprint('guardians', __name__)
 
 @guardians_bp.route('', methods=['GET'])
-@token_required
+@require_firebase_auth
 def get_guardians(current_user):
     search_query = request.args.get('search', '').strip()
     
@@ -36,8 +36,8 @@ def get_guardians(current_user):
     return jsonify({'guardians': [g.to_dict() for g in unique_guardians]}), 200
 
 @guardians_bp.route('', methods=['POST'])
-@token_required
-@role_required(['Parent', 'Admin'])
+@require_firebase_auth
+@require_role(['Parent', 'Admin'])
 def add_guardian(current_user):
     data = request.get_json()
     if not data or not data.get('studentId') or not data.get('fullName') or not data.get('relationship') or not data.get('phoneNumber') or not data.get('email'):
@@ -83,8 +83,8 @@ def add_guardian(current_user):
     return jsonify({'message': 'Guardian added and mapped successfully', 'guardianId': guardian.id}), 201
 
 @guardians_bp.route('/<int:guardian_id>', methods=['PUT'])
-@token_required
-@role_required(['Parent', 'Admin'])
+@require_firebase_auth
+@require_role(['Parent', 'Admin'])
 def update_guardian(current_user, guardian_id):
     guardian = Guardian.query.get(guardian_id)
     if not guardian:
@@ -113,8 +113,8 @@ def update_guardian(current_user, guardian_id):
     return jsonify({'message': 'Guardian profile updated successfully'}), 200
 
 @guardians_bp.route('/<int:guardian_id>/unlink/<int:student_id>', methods=['DELETE'])
-@token_required
-@role_required(['Parent', 'Admin'])
+@require_firebase_auth
+@require_role(['Parent', 'Admin'])
 def unlink_guardian(current_user, guardian_id, student_id):
     student = Student.query.filter_by(id=student_id, is_deleted=False).first()
     guardian = Guardian.query.get(guardian_id)

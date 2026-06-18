@@ -1,15 +1,15 @@
 from flask import Blueprint, request, jsonify, current_app
 from datetime import datetime, timedelta
 from models import db, Student, Guardian, QrToken, PickupLog, User
-from middleware import token_required, role_required
+from firebase_config import require_firebase_auth, require_role
 from services.rule_engine import RuleEngine
 from services.notifier import Notifier
 
 pickups_bp = Blueprint('pickups', __name__)
 
 @pickups_bp.route('/verify', methods=['POST'])
-@token_required
-@role_required(['Teacher'])
+@require_firebase_auth
+@require_role(['Teacher'])
 def verify_pickup(current_user):
     data = request.get_json()
     if not data or not data.get('token'):
@@ -98,8 +98,8 @@ def verify_pickup(current_user):
     }), 200
 
 @pickups_bp.route('/confirm', methods=['POST'])
-@token_required
-@role_required(['Teacher'])
+@require_firebase_auth
+@require_role(['Teacher'])
 def confirm_pickup(current_user):
     data = request.get_json()
     if not data or not data.get('studentId') or not data.get('guardianId') or not data.get('status') or not data.get('token'):
@@ -161,8 +161,8 @@ def confirm_pickup(current_user):
 
 # Fetch logs verified by the logged-in teacher
 @pickups_bp.route('/logs', methods=['GET'])
-@token_required
-@role_required(['Teacher', 'Admin'])
+@require_firebase_auth
+@require_role(['Teacher', 'Admin'])
 def get_pickup_logs(current_user):
     if current_user.role.lower() == 'teacher':
         logs = PickupLog.query.filter_by(teacher_user_id=current_user.id).order_by(PickupLog.created_at.desc()).all()

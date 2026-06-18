@@ -1,11 +1,11 @@
 from flask import Blueprint, jsonify
 from models import Notification
-from middleware import token_required
+from firebase_config import require_firebase_auth
 
 notifications_bp = Blueprint('notifications', __name__)
 
 @notifications_bp.route('', methods=['GET'])
-@token_required
+@require_firebase_auth
 def get_notifications(current_user):
     if current_user.role.lower() == 'admin':
         notifications = Notification.query.order_by(Notification.created_at.desc()).all()

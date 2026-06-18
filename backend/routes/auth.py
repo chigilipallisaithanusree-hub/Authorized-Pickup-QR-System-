@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, current_app
 import jwt
 from datetime import datetime, timedelta
 from models import db, User
-from middleware import token_required
+from firebase_config import require_firebase_auth
 import logging
 
 logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ def login():
     }), 200
 
 @auth_bp.route('/profile', methods=['GET'])
-@token_required
+@require_firebase_auth
 def get_profile(current_user):
     return jsonify({'user': current_user.to_dict()}), 200
 
