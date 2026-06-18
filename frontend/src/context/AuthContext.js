@@ -35,7 +35,12 @@ export const AuthProvider = ({ children }) => {
         return false;
       }
     }
-    // Default to Production Mode (Firebase Authentication)
+    // Fall back to Mock Mode if Firebase API Key is not set in environment (e.g., on Vercel deployment without env vars)
+    const hasFirebase = !!process.env.REACT_APP_FIREBASE_API_KEY;
+    if (!hasFirebase) {
+      localStorage.setItem('use_mock_auth', 'true');
+      return true;
+    }
     return localStorage.getItem('use_mock_auth') === 'true';
   });
 
@@ -167,35 +172,76 @@ export const AuthProvider = ({ children }) => {
         return { success: true };
       } else {
         isLoggingInRef.current = true;
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const firebaseUser = userCredential.user;
-        const idToken = await firebaseUser.getIdToken();
+        let userCredential;
+        let idToken;
+        let data;
+        let success = false;
         
-        const response = await fetch(`${API_URL}/api/auth/profile`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${idToken}`,
-            'Content-Type': 'application/json'
+        try {
+          userCredential = await signInWithEmailAndPassword(auth, email, password);
+          const firebaseUser = userCredential.user;
+          idToken = await firebaseUser.getIdToken();
+          
+          const response = await fetch(`${API_URL}/api/auth/profile`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          data = await response.json();
+          if (response.ok) {
+            success = true;
+          } else {
+            await signOut(auth);
           }
-        });
-        const data = await response.json();
-        
-        if (!response.ok) {
-          await signOut(auth);
-          throw new Error(data.error || 'Failed to authenticate with backend.');
+        } catch (fbErr) {
+          console.warn("Firebase authentication failed. Attempting mock fallback...", fbErr);
         }
         
-        setUser(data.user);
-        setToken(idToken);
-        localStorage.setItem('token', idToken);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        
-        const userRole = data.user.role.toLowerCase();
-        if (userRole === 'parent') navigate('/parent/dashboard');
-        else if (userRole === 'teacher') navigate('/teacher/dashboard');
-        else if (userRole === 'admin') navigate('/admin/dashboard');
-        
-        return { success: true };
+        if (success) {
+          setUser(data.user);
+          setToken(idToken);
+          localStorage.setItem('token', idToken);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          
+          const userRole = data.user.role.toLowerCase();
+          if (userRole === 'parent') navigate('/parent/dashboard');
+          else if (userRole === 'teacher') navigate('/teacher/dashboard');
+          else if (userRole === 'admin') navigate('/admin/dashboard');
+          
+          return { success: true };
+        } else {
+          // Attempt Mock Fallback
+          const response = await fetch(`${API_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password, role: selectedRole })
+          });
+          const mockData = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(mockData.error || 'Invalid credentials or role.');
+          }
+          
+          // Switch to mock mode automatically
+          setIsMock(true);
+          localStorage.setItem('use_mock_auth', 'true');
+          
+          setUser(mockData.user);
+          setToken(mockData.token);
+          localStorage.setItem('token', mockData.token);
+          localStorage.setItem('user', JSON.stringify(mockData.user));
+          
+          const userRole = mockData.user.role.toLowerCase();
+          if (userRole === 'parent') navigate('/parent/dashboard');
+          else if (userRole === 'teacher') navigate('/teacher/dashboard');
+          else if (userRole === 'admin') navigate('/admin/dashboard');
+          
+          return { success: true };
+        }
       }
     } catch (err) {
       console.error("Login failed:", err);
