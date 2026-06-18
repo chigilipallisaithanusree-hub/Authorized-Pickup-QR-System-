@@ -1,3 +1,5 @@
+flask_sqlalchemy
+Flask-SQLAlchemy
 python-dotenv
 firebase-admin>=7.4.0
 PyJWT>=2.10.1
@@ -5,3 +7,7 @@ gunicorn
 Flask
 PyMySQL
 Flask-Cors
+cryptography
+qrcode
+reportlab
+bcrypt
