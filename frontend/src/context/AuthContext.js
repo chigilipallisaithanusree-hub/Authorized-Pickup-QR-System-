@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 import { 
   signInWithEmailAndPassword, 
   signOut, 
@@ -43,7 +45,7 @@ export const AuthProvider = ({ children }) => {
       const verifyLocalSession = async () => {
         if (localToken && localUser) {
           try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/profile`, {
+            const response = await fetch(`${API_URL}/api/auth/profile`, {
               method: 'GET',
               headers: {
                 'Authorization': `Bearer ${localToken}`,
@@ -79,7 +81,7 @@ export const AuthProvider = ({ children }) => {
             const idToken = await firebaseUser.getIdToken(true);
             
             // Fetch user details and role from Flask/MySQL backend
-            const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/profile`, {
+            const response = await fetch(`${API_URL}/api/auth/profile`, {
               method: 'GET',
               headers: {
                 'Authorization': `Bearer ${idToken}`,
@@ -132,7 +134,7 @@ export const AuthProvider = ({ children }) => {
     try {
       if (isMock) {
         // 1. Direct local login to backend (skipping Firebase)
-        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/login`, {
+        const response = await fetch(`${API_URL}/api/auth/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -166,7 +168,7 @@ export const AuthProvider = ({ children }) => {
         const idToken = await firebaseUser.getIdToken(true);
         
         // 3. Query Flask backend to resolve role permissions
-        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/profile`, {
+        const response = await fetch(`${API_URL}/api/auth/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${idToken}`,
@@ -220,7 +222,7 @@ export const AuthProvider = ({ children }) => {
     try {
       if (isMock) {
         // Direct local mock registration
-        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/mock-register`, {
+        const response = await fetch(`${API_URL}/api/auth/mock-register`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -246,7 +248,7 @@ export const AuthProvider = ({ children }) => {
         return { success: true };
       } else {
         // 1. Step 1: Pre-authorization validation check with backend
-        const checkResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/register-check`, {
+        const checkResponse = await fetch(`${API_URL}/api/auth/register-check`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -263,7 +265,7 @@ export const AuthProvider = ({ children }) => {
         const firebaseUser = userCredential.user;
         
         // 3. Step 3: Link Firebase account UID in database
-        const linkResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/register-link`, {
+        const linkResponse = await fetch(`${API_URL}/api/auth/register-link`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
