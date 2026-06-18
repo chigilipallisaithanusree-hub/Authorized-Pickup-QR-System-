@@ -20,32 +20,30 @@ finally:
 logger = logging.getLogger(__name__)
 
 # Initialize the Firebase Admin SDK using path from environment variable
-config_path = os.environ.get("FIREBASE_CONFIG_PATH", "firebase-service-account.json")
-if not os.path.exists(config_path):
+firebase_config_path = os.environ.get("FIREBASE_CONFIG_PATH", "firebase-service-account.json")
+if not os.path.exists(firebase_config_path):
     for path in ['serviceAccountKey.json', 'firebase-service-account.json']:
         alt_path = os.path.join(local_dir, path)
         if os.path.exists(alt_path):
-            config_path = alt_path
+            firebase_config_path = alt_path
             break
 
 firebase_app = None
-try:
-    if os.path.exists(config_path):
-        logger.info(f"[Firebase Admin] Initializing SDK from config file: {config_path}")
-        cred = credentials.Certificate(config_path)
-        firebase_app = firebase_admin.initialize_app(cred)
-    else:
-        # Check if already initialized by another module
-        if not firebase_admin._apps:
-            logger.info("[Firebase Admin] Config file not found. Running in offline/development fallback mode.")
-            firebase_app = None
+if not firebase_admin._apps:
+    try:
+        if os.path.exists(firebase_config_path):
+            logger.info(f"[Firebase Admin] Initializing SDK from config file: {firebase_config_path}")
+            cred = credentials.Certificate(firebase_config_path)
+            firebase_app = firebase_admin.initialize_app(cred)
         else:
-            firebase_app = firebase_admin.get_app()
-except ValueError:
+            # Fallback initialization for local testing if file doesn't exist yet
+            logger.info("[Firebase Admin] Config file not found. Running in offline/development fallback mode.")
+            firebase_app = firebase_admin.initialize_app()
+    except Exception as e:
+        logger.error(f"Firebase Admin SDK initialization failed: {e}")
+        firebase_app = None
+else:
     firebase_app = firebase_admin.get_app()
-except Exception as e:
-    logger.error(f"[Firebase Admin] Failed to initialize: {e}")
-    firebase_app = None
 
 # Decorators
 def require_firebase_auth(f):
@@ -131,7 +129,15 @@ def require_role(allowed_roles):
         return decorated
     return decorator
 
-# Attach our custom decorators and initialize state to the real firebase_admin module
+# Attach decorators to the real library package so that direct imports from it work
 firebase_admin.require_firebase_auth = require_firebase_auth
 firebase_admin.require_role = require_role
 firebase_admin.firebase_app = firebase_app
+
+# Copy all attributes of the real firebase_admin package into this module's namespace
+for attr in dir(firebase_admin):
+    if not attr.startswith('__'):
+        globals()[attr] = getattr(firebase_admin, attr)
+
+# Override sys.modules to point to this module
+sys.modules['firebase_admin'] = sys.modules[__name__]
