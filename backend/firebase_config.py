@@ -1,8 +1,10 @@
 import os
 import sys
-import logging
 import firebase_admin
 from firebase_admin import credentials, auth
+
+# Helper imports for decorators
+import logging
 from flask import request, jsonify, current_app
 from functools import wraps
 import jwt
@@ -14,8 +16,10 @@ if not firebase_admin._apps:
         if os.path.exists(firebase_config_path):
             cred = credentials.Certificate(firebase_config_path)
             firebase_admin.initialize_app(cred)
+            print("Firebase Admin SDK initialized successfully.", file=sys.stderr)
         else:
             firebase_admin.initialize_app()
+            print("Firebase Admin SDK initialized with fallback defaults.", file=sys.stderr)
     except Exception as e:
         print(f"Firebase Init Error: {e}", file=sys.stderr)
 
