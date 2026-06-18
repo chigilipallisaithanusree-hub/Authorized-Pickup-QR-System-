@@ -1,8 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
-
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 import { 
   signInWithEmailAndPassword, 
   signOut, 
@@ -10,6 +8,8 @@ import {
   createUserWithEmailAndPassword,
   sendPasswordResetEmail
 } from 'firebase/auth';
+
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 const AuthContext = createContext(null);
 
