@@ -10,7 +10,25 @@ import {
 } from 'firebase/auth';
 import { auth } from '../firebase';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const getApiUrl = () => {
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  const hostname = window.location.hostname;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:5000';
+  }
+  const isLocalIp = /^192\.168\./.test(hostname) || 
+                    /^10\./.test(hostname) || 
+                    /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname);
+  if (isLocalIp) {
+    return `http://${hostname}:5000`;
+  }
+  console.warn("REACT_APP_API_URL environment variable is not defined. Falling back to default Render backend URL.");
+  return 'https://authorized-pickup-backend.onrender.com';
+};
+
+const API_URL = getApiUrl();
 
 // 2. Initialize the Context
 const AuthContext = createContext(null);
