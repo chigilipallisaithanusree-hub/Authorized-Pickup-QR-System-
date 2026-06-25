@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }) => {
     } else {
       // Monitor Firebase Auth state
       const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-        if (isLoggingInRef.current) {
+        if (isLoggingInRef.current || localStorage.getItem('use_mock_auth') === 'true') {
           return;
         }
         setLoading(true);
