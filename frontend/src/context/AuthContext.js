@@ -177,15 +177,10 @@ export const AuthProvider = ({ children }) => {
           throw new Error(data.error || 'Invalid credentials or role.');
         }
         
-        setUser(data.user);
-        setToken(data.token);
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        
-        const userRole = data.user.role.toLowerCase();
-        if (userRole === 'parent') navigate('/parent/dashboard');
-        else if (userRole === 'teacher') navigate('/teacher/dashboard');
-        else if (userRole === 'admin') navigate('/admin/dashboard');
+        setToken(data.token);
+        setUser(data.user);
         
         return { success: true };
       } else {
@@ -218,15 +213,10 @@ export const AuthProvider = ({ children }) => {
         }
         
         if (success) {
-          setUser(data.user);
-          setToken(idToken);
           localStorage.setItem('token', idToken);
           localStorage.setItem('user', JSON.stringify(data.user));
-          
-          const userRole = data.user.role.toLowerCase();
-          if (userRole === 'parent') navigate('/parent/dashboard');
-          else if (userRole === 'teacher') navigate('/teacher/dashboard');
-          else if (userRole === 'admin') navigate('/admin/dashboard');
+          setToken(idToken);
+          setUser(data.user);
           
           return { success: true };
         } else {
@@ -248,15 +238,10 @@ export const AuthProvider = ({ children }) => {
           setIsMock(true);
           localStorage.setItem('use_mock_auth', 'true');
           
-          setUser(mockData.user);
-          setToken(mockData.token);
           localStorage.setItem('token', mockData.token);
           localStorage.setItem('user', JSON.stringify(mockData.user));
-          
-          const userRole = mockData.user.role.toLowerCase();
-          if (userRole === 'parent') navigate('/parent/dashboard');
-          else if (userRole === 'teacher') navigate('/teacher/dashboard');
-          else if (userRole === 'admin') navigate('/admin/dashboard');
+          setToken(mockData.token);
+          setUser(mockData.user);
           
           return { success: true };
         }
