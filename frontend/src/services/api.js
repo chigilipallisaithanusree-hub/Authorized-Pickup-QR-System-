@@ -13,7 +13,7 @@ const getApiUrl = () => {
     return `http://${hostname}:5000`;
   }
   console.warn("REACT_APP_API_URL environment variable is not defined. Falling back to default Render backend URL.");
-  return 'https://authorized-pickup-backend.onrender.com';
+  return 'https://authorized-pickup-qr-system.onrender.com';
 };
 
 const API_URL = getApiUrl();
