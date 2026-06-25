@@ -28,9 +28,10 @@ def seed_database():
 
         print("Seeding new mock records...")
         
-        # 1. Seed Users (1 Admin, 2 Teachers, 3 Parents)
-        # Admin (1)
+        # 1. Seed Users (2 Admins, 2 Teachers, 3 Parents)
+        # Admin (2)
         admin = User(email='saithanusreechigilipalli@gmail.com', firebase_uid='uid_admin_sarah', role='admin', full_name='Sai Thanusree Chigilipalli')
+        admin2 = User(email='chigilipallisaithanusree@gmail.com', firebase_uid='uid_admin_sarah2', role='admin', full_name='Sai Thanusree Chigilipalli')
         
         # Teachers (2)
         teacher1 = User(email='davis@school.edu', firebase_uid='uid_teacher_davis', role='teacher', full_name='Mr. Robert Davis')
@@ -41,7 +42,7 @@ def seed_database():
         parent2 = User(email='john.doe@family.com', firebase_uid='uid_parent_doe', role='parent', full_name='Mr. John Doe')
         parent3 = User(email='jane.smith@family.com', firebase_uid='uid_parent_smith', role='parent', full_name='Mrs. Jane Smith')
         
-        db.session.add_all([admin, teacher1, teacher2, parent1, parent2, parent3])
+        db.session.add_all([admin, admin2, teacher1, teacher2, parent1, parent2, parent3])
         db.session.commit()
         print(f"Seeded Users: {User.query.count()}")
 

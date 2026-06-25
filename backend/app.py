@@ -79,6 +79,7 @@ def create_app(config_class=Config):
             if not User.query.first():
                 admin = User(email='saithanusreechigilipalli@gmail.com', firebase_uid='uid_admin_sarah', role='admin', full_name='Sai Thanusree Chigilipalli')
                 admin2 = User(email='viceprincipal@school.edu', firebase_uid='uid_admin_wilson', role='admin', full_name='Vice Principal James Wilson')
+                admin3 = User(email='chigilipallisaithanusree@gmail.com', firebase_uid='uid_admin_sarah2', role='admin', full_name='Sai Thanusree Chigilipalli')
                 teacher = User(email='davis@school.edu', firebase_uid='uid_teacher_davis', role='teacher', full_name='Mr. Robert Davis')
                 teacher2 = User(email='clark@school.edu', firebase_uid='uid_teacher_clark', role='teacher', full_name='Mrs. Helen Clark')
                 teacher3 = User(email='jones@school.edu', firebase_uid='uid_teacher_jones', role='teacher', full_name='Miss Emily Jones')
@@ -86,7 +87,7 @@ def create_app(config_class=Config):
                 parent2 = User(email='john.doe@family.com', firebase_uid='uid_parent_doe', role='parent', full_name='Mr. John Doe')
                 parent3 = User(email='jane.smith@family.com', firebase_uid='uid_parent_smith', role='parent', full_name='Mrs. Jane Smith')
                 parent4 = User(email='robert.johnson@family.com', firebase_uid='uid_parent_johnson', role='parent', full_name='Mr. Robert Johnson')
-                db.session.add_all([admin, admin2, teacher, teacher2, teacher3, parent, parent2, parent3, parent4])
+                db.session.add_all([admin, admin2, admin3, teacher, teacher2, teacher3, parent, parent2, parent3, parent4])
                 db.session.commit()
                 
                 # Seed students
